@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  *
  * @author Ben
  */
-public class DialogHandler {
+public class HeckScriptHandler {
 
     /**
      * Parses a dialog file, returning a ready-to-use dialog object.
@@ -28,7 +28,7 @@ public class DialogHandler {
         try {
             br = new BufferedReader(new FileReader(file));
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(DialogHandler.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(HeckScriptHandler.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
         //array list to hold the script
@@ -41,7 +41,7 @@ public class DialogHandler {
                 line = br.readLine();
             }
         } catch (IOException ex) {
-            Logger.getLogger(DialogHandler.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(HeckScriptHandler.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
         return new HeckScript(file.getName(), lines);
