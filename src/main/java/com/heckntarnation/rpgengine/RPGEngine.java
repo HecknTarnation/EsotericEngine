@@ -10,7 +10,7 @@ import java.io.File;
  */
 public class RPGEngine {
 
-    public static DialogHandler dioHandler = new DialogHandler();
+    public static HeckScriptHandler heckHandler = new HeckScriptHandler();
 
     /**
      * Can be used to change handlers to custom ones, use the no parameter
@@ -19,8 +19,8 @@ public class RPGEngine {
      *
      * @param dHandler
      */
-    public static void init(DialogHandler dHandler) {
-        dioHandler = dHandler == null ? dioHandler : dHandler;
+    public static void init(HeckScriptHandler dHandler) {
+        heckHandler = dHandler == null ? heckHandler : dHandler;
         init();
     }
 
@@ -34,8 +34,8 @@ public class RPGEngine {
     //testing
     public static void test() {
         File file = new File("./testscript.hs");
-        HeckScript script = dioHandler.readHeckScriptFile(file);
-        dioHandler.runHeckScirpt(script);
+        HeckScript script = heckHandler.readHeckScriptFile(file);
+        heckHandler.runHeckScirpt(script);
     }
 
 }
