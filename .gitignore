@@ -1,1 +1,6 @@
 
+target/test-classes/.netbeans_automatic_build
+target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+target/maven-javadoc-plugin-stale-data.txt
+*.class
