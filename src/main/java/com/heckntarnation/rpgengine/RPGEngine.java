@@ -42,6 +42,8 @@ public class RPGEngine {
             heckHandler.runHeckScirpt(script);
         } catch (InvalidCharException ex) {
             Logger.getLogger(RPGEngine.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(RPGEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
