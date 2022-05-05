@@ -1,9 +1,9 @@
 package com.heckntarnation.rpgengine.handlers;
 
+import com.heckntarnation.rpgengine.heckscript.HeckRuntimeException;
 import com.heckntarnation.rpgengine.heckscript.HeckScript;
 import com.heckntarnation.rpgengine.heckscript.InvalidCharException;
 import com.heckntarnation.rpgengine.heckscript.InvalidSyntaxException;
-import com.heckntarnation.rpgengine.heckscript.HeckRuntimeException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,8 +30,20 @@ public class HeckScriptHandler {
     public static final String T_DIV = "DIV";
     public static final String T_LPAREN = "LPAREN";
     public static final String T_RPAREN = "RPAREN";
+    public static final String T_POW = "POW";
     public static final String T_EOF = "EOF";
+    public static final String T_EQ = "EQ";
+    public static final String T_IDENTIFIER = "IDENTIFIER";
+    public static final String T_KEYWORD = "KEYWORD";
+
     public static final String DIGITS = "0123456789";
+    public static final String LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    public static final String LETTERS_DIGITS = DIGITS + LETTERS;
+
+    public static final String[] KEYWORDS = {
+        "var",
+        "function"
+    };
 
     /**
      * Parses a HeckScript file, returning a ready-to-use HeckScript object.
@@ -75,13 +87,16 @@ public class HeckScriptHandler {
         HeckScriptInterpreter interp = new HeckScriptInterpreter();
         Context rootContext = new Context("<program>", null, null);
         ArrayList<Token> tokens = lexer.tokinize(script);
+        System.out.println("Tokens:");
         tokens.forEach(l -> {
             System.out.println(l);
         });
         Node parsedNode = parser.parse(tokens).node;
+        System.out.println("Parsed Expression:");
         System.out.println(parsedNode);
         Object result = interp.visit(parsedNode, rootContext);
         RuntimeResult res = (RuntimeResult) result;
+        System.out.println("Expression Result:");
         System.out.println(res.value);
     }
 
@@ -118,6 +133,10 @@ public class HeckScriptHandler {
             return this;
         }
 
+        public boolean matches(String type, String value) {
+            return this.type.equals(type) && this.value.equals(value);
+        }
+
         @Override
         public String toString() {
             if (this.value != null) {
@@ -146,6 +165,10 @@ public class HeckScriptHandler {
             while (currentChar != '`') {
                 if (currentChar == ' ' || currentChar == '\t') {
                     advance();
+                } else if (DIGITS.contains(currentChar + "")) {
+                    tokens.add(makeNumber());
+                } else if (LETTERS.contains(currentChar + "")) {
+                    tokens.add(makeIdentifier());
                 } else if (currentChar == '+') {
                     tokens.add(new Token(T_PLUS).setStart(position));
                     advance();
@@ -164,8 +187,12 @@ public class HeckScriptHandler {
                 } else if (currentChar == ')') {
                     tokens.add(new Token(T_RPAREN).setStart(position));
                     advance();
-                } else if (DIGITS.contains(currentChar + "")) {
-                    tokens.add(makeNumber());
+                } else if (currentChar == '^') {
+                    tokens.add(new Token(T_POW).setStart(position));
+                    advance();
+                } else if (currentChar == '=') {
+                    tokens.add(new Token(T_EQ).setStart(position));
+                    advance();
                 } else {
                     Position pos = position.copy();
                     char errChar = currentChar;
@@ -209,6 +236,19 @@ public class HeckScriptHandler {
             }
         }
 
+        private Token makeIdentifier() {
+            String str = "";
+            Position start = position.copy();
+
+            while (currentChar != '`' && (LETTERS_DIGITS + "_").contains(currentChar + "")) {
+                str += currentChar;
+                advance();
+            }
+
+            String tokenType = (Arrays.asList(KEYWORDS).contains(str) ? T_KEYWORD : T_IDENTIFIER);
+            return new Token(tokenType, str, start, position);
+        }
+
     }
 
     public class HeckScriptParser {
@@ -225,21 +265,15 @@ public class HeckScriptHandler {
             return this.currentToken;
         }
 
-        private ParseResult factor() throws Exception {
+        private ParseResult atom() throws Exception {
             ParseResult result = new ParseResult();
             Token tok = this.currentToken;
-            if (tok.type.equals(T_PLUS) || tok.type.equals(T_MINUS)) {
-
-                result.register(this.advance());
-                Node factor = result.register(this.factor());
-                if (result.error != null) {
-                    throw result.error;
-                }
-                return result.success(new UnOpNode(tok, factor));
-            } else if (tok.type.equals(T_INT) || tok.type.equals(T_FLOAT)) {
+            if (tok.type.equals(T_INT) || tok.type.equals(T_FLOAT)) {
                 NumberNode node = new NumberNode(tok);
                 result.register(this.advance());
                 return result.success(node);
+            } else if (tok.type.equals(T_IDENTIFIER)) {
+                return result.success(new VarAccessNode(tok));
             } else if (tok.type.equals(T_LPAREN)) {
                 result.register(this.advance());
                 Node expression = result.register(this.expression());
@@ -253,7 +287,21 @@ public class HeckScriptHandler {
                     result.failure(new InvalidSyntaxException("Expected ')' at COL:" + this.currentToken.start.col + " on Line " + (this.currentToken.start.lineNum + 1)));
                 }
             }
-            return result.failure(new InvalidSyntaxException("Expected Int or Float at COL:" + this.currentToken.start.col + " on Line " + this.currentToken.start.lineNum + 1));
+            return result.failure(new InvalidSyntaxException("Expected Int, Float, '+', '-', '(' at COL:" + this.currentToken.start.col + " on Line " + this.currentToken.start.lineNum + 1));
+        }
+
+        private ParseResult factor() throws Exception {
+            ParseResult result = new ParseResult();
+            Token tok = this.currentToken;
+            if (tok.type.equals(T_PLUS) || tok.type.equals(T_MINUS)) {
+                result.register(this.advance());
+                Node factor = result.register(this.factor());
+                if (result.error != null) {
+                    throw result.error;
+                }
+                return result.success(new UnOpNode(tok, factor));
+            }
+            return this.power();
         }
 
         private ParseResult term() throws Exception {
@@ -261,19 +309,47 @@ public class HeckScriptHandler {
         }
 
         private ParseResult expression() throws Exception {
+            ParseResult result = new ParseResult();
+            if (currentToken.matches(T_KEYWORD, "var")) {
+                result.register(advance());
+                if (!currentToken.type.equals(T_IDENTIFIER)) {
+                    return result.failure(new InvalidSyntaxException("Expected identifier at COL:" + currentToken.start.col + " on Line " + currentToken.start.lineNum));
+                }
+                Token varName = currentToken;
+                result.register(advance());
+
+                if (!currentToken.type.equals(T_EQ)) {
+                    return result.failure(new InvalidSyntaxException("Expected '=' at COL:" + currentToken.start.col + " on Line " + currentToken.start.lineNum));
+                }
+
+                result.register(advance());
+                Node expression = result.register(expression());
+                if (result.error != null) {
+                    throw result.error;
+                }
+                return result.success(new VarAssignNode(varName, expression));
+            }
             return binop(new String[]{T_PLUS, T_MINUS}, (Callable) () -> term());
         }
 
+        private ParseResult power() throws Exception {
+            return binop(new String[]{T_POW}, (Callable) () -> atom(), (Callable) () -> factor());
+        }
+
         private ParseResult binop(String[] ops, Callable func) throws Exception {
+            return binop(ops, func, func);
+        }
+
+        private ParseResult binop(String[] ops, Callable funcA, Callable funcB) throws Exception {
             ParseResult result = new ParseResult();
-            Node left = result.register((ParseResult) func.call());
+            Node left = result.register((ParseResult) funcA.call());
             if (result.error != null) {
                 throw result.error;
             }
             while (Arrays.asList(ops).contains(this.currentToken.type)) {
                 Token op = this.currentToken;
                 result.register(advance());
-                Node right = result.register((ParseResult) func.call());
+                Node right = result.register((ParseResult) funcB.call());
                 if (result.error != null) {
                     throw result.error;
                 }
@@ -329,6 +405,8 @@ public class HeckScriptHandler {
                 resultNumber = left.multiplyBy(right);
             } else if (node.opToken.type.equals(T_DIV)) {
                 resultNumber = left.divideBy(right);
+            } else if (node.opToken.type.equals(T_POW)) {
+                resultNumber = left.powerBy(right);
             }
             result.error = resultNumber.error;
             if (result.error != null) {
@@ -397,6 +475,7 @@ public class HeckScriptHandler {
         }
     }
 
+    //TODO: when printed out, it displays as a float even if it's an int
     public class Number {
 
         public boolean isFloat = false;
@@ -438,7 +517,6 @@ public class HeckScriptHandler {
             return this;
         }
 
-        //TODO: for some reason, this method returns a float number.
         public Number addedTo(Object other) {
             if (other instanceof Number) {
                 Number oth = (Number) other;
@@ -470,7 +548,7 @@ public class HeckScriptHandler {
             return null;
         }
 
-        public Number divideBy(Object other) throws RuntimeExcpetion {
+        public Number divideBy(Object other) throws HeckRuntimeException {
             if (other instanceof Number) {
                 if (other instanceof Number) {
                     Number oth = (Number) other;
@@ -482,6 +560,15 @@ public class HeckScriptHandler {
                     return new Number((this.isFloat ? Float.parseFloat(this.value) : Integer.parseInt(this.value))
                             / (oth.isFloat ? Float.parseFloat(oth.value) : Integer.parseInt(oth.value))).setContext(this.context);
                 }
+            }
+            return null;
+        }
+
+        public Number powerBy(Object other) {
+            if (other instanceof Number) {
+                Number oth = (Number) other;
+                return new Number((float) Math.pow(this.isFloat ? Float.parseFloat(this.value) : Integer.parseInt(this.value),
+                        (oth.isFloat ? Float.parseFloat(oth.value) : Integer.parseInt(oth.value)))).setContext(this.context);
             }
             return null;
         }
@@ -584,6 +671,36 @@ public class HeckScriptHandler {
             return String.format("%1s, %2s", this.opToken, this.node);
         }
 
+    }
+
+    public class VarAssignNode extends Node {
+
+        public Token name;
+        public Node value;
+
+        public VarAssignNode(Token name, Node node) {
+            this.name = name;
+            this.value = node;
+            this.start = name.start;
+            this.end = node.end;
+        }
+
+        @Override
+        public String toString() {
+            return name + "=" + value;
+        }
+
+    }
+
+    public class VarAccessNode extends Node {
+
+        public Token name;
+
+        public VarAccessNode(Token name) {
+            this.name = name;
+            this.start = name.start;
+            this.end = name.end;
+        }
     }
 
     public class Position {
