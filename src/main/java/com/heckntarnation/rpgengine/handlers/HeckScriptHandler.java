@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -81,11 +82,16 @@ public class HeckScriptHandler {
      * @param script
      * @throws com.heckntarnation.rpgengine.heckscript.InvalidCharException
      */
-    public void runHeckScirpt(HeckScript script) throws InvalidCharException, Exception {
+    public void runHeckScirpt(HeckScript script) throws Exception {
         HeckScriptLexer lexer = new HeckScriptLexer();
         HeckScriptParser parser = new HeckScriptParser();
         HeckScriptInterpreter interp = new HeckScriptInterpreter();
         Context rootContext = new Context("<program>", null, null);
+        SymbolTable rootTable = new SymbolTable();
+        rootTable.set("null", new Number(0));
+        rootTable.set("a", new Number(5));
+        rootContext.symbolTable = rootTable;
+
         ArrayList<Token> tokens = lexer.tokinize(script);
         System.out.println("Tokens:");
         tokens.forEach(l -> {
@@ -270,31 +276,37 @@ public class HeckScriptHandler {
             Token tok = this.currentToken;
             if (tok.type.equals(T_INT) || tok.type.equals(T_FLOAT)) {
                 NumberNode node = new NumberNode(tok);
-                result.register(this.advance());
+                result.registerAdvancement();
+                this.advance();
                 return result.success(node);
             } else if (tok.type.equals(T_IDENTIFIER)) {
+                result.registerAdvancement();
+                this.advance();
                 return result.success(new VarAccessNode(tok));
             } else if (tok.type.equals(T_LPAREN)) {
-                result.register(this.advance());
+                result.registerAdvancement();
+                this.advance();
                 Node expression = result.register(this.expression());
                 if (result.error != null) {
                     throw result.error;
                 }
                 if (this.currentToken.type.equals(T_RPAREN)) {
-                    result.register(this.advance());
+                    result.registerAdvancement();
+                    this.advance();
                     return result.success(expression);
                 } else {
                     result.failure(new InvalidSyntaxException("Expected ')' at COL:" + this.currentToken.start.col + " on Line " + (this.currentToken.start.lineNum + 1)));
                 }
             }
-            return result.failure(new InvalidSyntaxException("Expected Int, Float, '+', '-', '(' at COL:" + this.currentToken.start.col + " on Line " + this.currentToken.start.lineNum + 1));
+            return result.failure(new InvalidSyntaxException("Expected Int, Float, Identifier, '+', '-', or '(' at COL:" + this.currentToken.start.col + " on Line " + this.currentToken.start.lineNum + 1));
         }
 
         private ParseResult factor() throws Exception {
             ParseResult result = new ParseResult();
             Token tok = this.currentToken;
             if (tok.type.equals(T_PLUS) || tok.type.equals(T_MINUS)) {
-                result.register(this.advance());
+                result.registerAdvancement();
+                this.advance();
                 Node factor = result.register(this.factor());
                 if (result.error != null) {
                     throw result.error;
@@ -311,25 +323,33 @@ public class HeckScriptHandler {
         private ParseResult expression() throws Exception {
             ParseResult result = new ParseResult();
             if (currentToken.matches(T_KEYWORD, "var")) {
-                result.register(advance());
+                result.registerAdvancement();
+                this.advance();
                 if (!currentToken.type.equals(T_IDENTIFIER)) {
                     return result.failure(new InvalidSyntaxException("Expected identifier at COL:" + currentToken.start.col + " on Line " + currentToken.start.lineNum));
                 }
                 Token varName = currentToken;
-                result.register(advance());
+                result.registerAdvancement();
+                this.advance();
 
                 if (!currentToken.type.equals(T_EQ)) {
                     return result.failure(new InvalidSyntaxException("Expected '=' at COL:" + currentToken.start.col + " on Line " + currentToken.start.lineNum));
                 }
 
-                result.register(advance());
+                result.registerAdvancement();
+                this.advance();
                 Node expression = result.register(expression());
                 if (result.error != null) {
                     throw result.error;
                 }
                 return result.success(new VarAssignNode(varName, expression));
             }
-            return binop(new String[]{T_PLUS, T_MINUS}, (Callable) () -> term());
+            Node node = result.register(binop(new String[]{T_PLUS, T_MINUS}, (Callable) () -> term()));
+
+            if (result.error != null) {
+                return result.failure(new InvalidSyntaxException("Expected 'var', Int, Float, Identifier, '+', '-', or '(' at COL:" + this.currentToken.start.col + " on Line " + this.currentToken.start.lineNum + 1));
+            }
+            return result.success(node);
         }
 
         private ParseResult power() throws Exception {
@@ -348,7 +368,8 @@ public class HeckScriptHandler {
             }
             while (Arrays.asList(ops).contains(this.currentToken.type)) {
                 Token op = this.currentToken;
-                result.register(advance());
+                result.registerAdvancement();
+                this.advance();
                 Node right = result.register((ParseResult) funcB.call());
                 if (result.error != null) {
                     throw result.error;
@@ -379,6 +400,10 @@ public class HeckScriptHandler {
                 return visitBinOpNode((BinOpNode) node, context);
             } else if (node instanceof UnOpNode) {
                 return visitUnOpNode((UnOpNode) node, context);
+            } else if (node instanceof VarAccessNode) {
+                return visitVarAccessNode((VarAccessNode) node, context);
+            } else if (node instanceof VarAssignNode) {
+                return visitVarAssignNode((VarAssignNode) node, context);
             } else {
                 visitDefault(node);
             }
@@ -428,6 +453,30 @@ public class HeckScriptHandler {
             return result.success(number.setPosition(node.start, node.end));
         }
 
+        private RuntimeResult visitVarAccessNode(VarAccessNode node, Context context) {
+            RuntimeResult result = new RuntimeResult();
+            String varName = node.name.value;
+            Object value = context.symbolTable.get(varName);
+
+            if (value == null) {
+                return result.failure(new HeckRuntimeException("Variable '" + varName + "' not defined at COL:" + context.parentEntry.col + " on Line " + (context.parentEntry.lineNum + 1)));
+            }
+
+            return result.success(value);
+        }
+
+        private RuntimeResult visitVarAssignNode(VarAssignNode node, Context context) throws Exception {
+            RuntimeResult result = new RuntimeResult();
+            String varName = node.name.value;
+            Object value = result.register(visit(node.value, context));
+
+            if (result.error != null) {
+                throw result.error;
+            }
+            context.symbolTable.set(varName, value);
+            return result.success(value);
+        }
+
         private void visitDefault(Node node) {
             try {
                 throw new HeckRuntimeException("No visit method defined for " + node.toString());
@@ -436,6 +485,33 @@ public class HeckScriptHandler {
             }
         }
 
+    }
+
+    public class SymbolTable {
+
+        public HashMap<String, Object> symbols;
+        public SymbolTable parent;
+
+        public SymbolTable() {
+            this.symbols = new HashMap<>();
+            this.parent = null;
+        }
+
+        public Object get(String var) {
+            Object v = symbols.get(var);
+            if (v == null && parent != null) {
+                return parent.get(var);
+            }
+            return v;
+        }
+
+        public void set(String name, Object value) {
+            symbols.put(name, value);
+        }
+
+        public void remove(String name) {
+            symbols.remove(name);
+        }
     }
 
     public class RuntimeResult {
@@ -467,6 +543,7 @@ public class HeckScriptHandler {
         public String name;
         public Context parent;
         public Position parentEntry;
+        public SymbolTable symbolTable;
 
         public Context(String name, Context parent, Position parentEntry) {
             this.name = name;
@@ -584,21 +661,23 @@ public class HeckScriptHandler {
 
         public Exception error;
         public Node node;
+        public int advanceCount = 0;
 
         public ParseResult() {
         }
 
-        public Node register(Object result) {
-            if (result instanceof ParseResult) {
-                if (((ParseResult) result).error != null) {
-                    this.error = ((ParseResult) result).error;
-                    return ((ParseResult) result).node;
-                }
+        public Node registerAdvancement() {
+            this.advanceCount++;
+            return null;
+        }
+
+        public Node register(ParseResult result) {
+            this.advanceCount += result.advanceCount;
+            if (result.error != null) {
+                this.error = result.error;
+                return result.node;
             }
-            if (result instanceof Token) {
-                return null;
-            }
-            return ((ParseResult) result).node;
+            return result.node;
         }
 
         public ParseResult success(Node node) {
@@ -607,7 +686,9 @@ public class HeckScriptHandler {
         }
 
         public ParseResult failure(Exception error) {
-            this.error = error;
+            if (this.error != null || this.advanceCount == 0) {
+                this.error = error;
+            }
             return this;
         }
     }
