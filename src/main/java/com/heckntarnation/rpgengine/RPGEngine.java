@@ -2,7 +2,6 @@ package com.heckntarnation.rpgengine;
 
 import com.heckntarnation.rpgengine.handlers.*;
 import com.heckntarnation.rpgengine.heckscript.HeckScript;
-import com.heckntarnation.rpgengine.heckscript.InvalidCharException;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,7 +17,7 @@ public class RPGEngine {
     /**
      * Can be used to change handlers to custom ones, use the no parameter
      * version to just initialize without changing. Leave any parameter blank to
-     * use its default.
+     * use its currently set one.
      *
      * @param dHandler
      */
@@ -40,8 +39,6 @@ public class RPGEngine {
         HeckScript script = heckHandler.readHeckScriptFile(file);
         try {
             heckHandler.runHeckScirpt(script);
-        } catch (InvalidCharException ex) {
-            Logger.getLogger(RPGEngine.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
             Logger.getLogger(RPGEngine.class.getName()).log(Level.SEVERE, null, ex);
         }
