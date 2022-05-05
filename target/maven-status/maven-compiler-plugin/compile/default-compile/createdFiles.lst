@@ -3,6 +3,7 @@ com\heckntarnation\rpgengine\handlers\HeckScriptHandler.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$Context.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$HeckScriptInterpreter.class
 com\heckntarnation\rpgengine\RPGEngine.class
+com\heckntarnation\rpgengine\handlers\HeckScriptHandler$SymbolTable.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$UnOpNode.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$VarAccessNode.class
 com\heckntarnation\rpgengine\heckscript\HeckScript.class
