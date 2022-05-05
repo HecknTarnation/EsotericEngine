@@ -1,8 +1,10 @@
+com\heckntarnation\rpgengine\handlers\HeckScriptHandler$VarAssignNode.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$Context.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$HeckScriptInterpreter.class
 com\heckntarnation\rpgengine\RPGEngine.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$UnOpNode.class
+com\heckntarnation\rpgengine\handlers\HeckScriptHandler$VarAccessNode.class
 com\heckntarnation\rpgengine\heckscript\HeckScript.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$HeckScriptParser.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$NumberNode.class
@@ -15,6 +17,5 @@ com\heckntarnation\rpgengine\handlers\HeckScriptHandler$BinOpNode.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$ParseResult.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$Number.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$RuntimeResult.class
-com\heckntarnation\rpgengine\handlers\RuntimeExcpetion.class
 com\heckntarnation\rpgengine\handlers\HeckScriptHandler$Token.class
 com\heckntarnation\rpgengine\heckscript\HeckRuntimeException.class
