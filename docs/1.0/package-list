@@ -1,3 +1,7 @@
 com.heckntarnation.rpgengine
 com.heckntarnation.rpgengine.handlers
 com.heckntarnation.rpgengine.heckscript
+com.heckntarnation.rpgengine.heckscript.cons
+com.heckntarnation.rpgengine.heckscript.cons.nodes
+com.heckntarnation.rpgengine.heckscript.exception
+com.heckntarnation.rpgengine.heckscript.interpreter
