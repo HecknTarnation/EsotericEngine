@@ -1,6 +1,7 @@
-package com.heckntarnation.rpgengine.heckscript;
+package com.heckntarnation.rpgengine.heckscript.exception;
 
-import com.heckntarnation.rpgengine.handlers.HeckScriptHandler;
+import com.heckntarnation.rpgengine.heckscript.cons.Context;
+import com.heckntarnation.rpgengine.heckscript.cons.Position;
 
 /**
  *
@@ -12,7 +13,7 @@ public class HeckRuntimeException extends Exception {
         super(err);
     }
 
-    public static HeckRuntimeException contextRuntimeException(String err, HeckScriptHandler.Context context, HeckScriptHandler.Position pos) {
+    public static HeckRuntimeException contextRuntimeException(String err, Context context, Position pos) {
         String result = "";
         while (context != null) {
             result = String.format(" File %1s, line %1d in %2s\n", pos.fileName, pos.lineNum + 1, context.name) + result;

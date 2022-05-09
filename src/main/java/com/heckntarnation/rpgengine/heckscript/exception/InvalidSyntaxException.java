@@ -1,4 +1,4 @@
-package com.heckntarnation.rpgengine.heckscript;
+package com.heckntarnation.rpgengine.heckscript.exception;
 
 /**
  *
