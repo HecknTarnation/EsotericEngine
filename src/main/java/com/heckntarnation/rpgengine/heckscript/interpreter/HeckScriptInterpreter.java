@@ -24,6 +24,8 @@ public class HeckScriptInterpreter {
             return visitVarAccessNode((VarAccessNode) node, context);
         } else if (node instanceof VarAssignNode) {
             return visitVarAssignNode((VarAssignNode) node, context);
+        } else if (node instanceof IfNode) {
+            return visitIfNode((IfNode) node, context);
         } else {
             visitDefault(node);
         }
@@ -113,6 +115,36 @@ public class HeckScriptInterpreter {
         }
         context.symbolTable.set(varName, value);
         return result.success(value);
+    }
+
+    private RuntimeResult visitIfNode(IfNode node, Context context) throws Exception {
+        RuntimeResult result = new RuntimeResult();
+
+        for (Node[] arr : node.cases) {
+            Node condition = arr[0];
+            Node expression = arr[1];
+            HeckNumber conditionVal = (HeckNumber) result.register(this.visit(condition, context));
+            if (result.error != null) {
+                throw result.error;
+            }
+            if (conditionVal.isTrue()) {
+                HeckNumber expressionVal = (HeckNumber) result.register(this.visit(expression, context));
+                if (result.error != null) {
+                    throw result.error;
+                }
+                return result.success(expressionVal);
+            }
+
+            if (node.elseCase != null) {
+                HeckNumber elseVal = (HeckNumber) result.register(this.visit(node.elseCase, context));
+                if (result.error != null) {
+                    throw result.error;
+                }
+                return result.success(elseVal);
+            }
+            return result.success(null);
+        }
+        return null;
     }
 
     private void visitDefault(Node node) {

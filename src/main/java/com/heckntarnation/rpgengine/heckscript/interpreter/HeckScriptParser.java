@@ -53,8 +53,81 @@ public class HeckScriptParser {
             } else {
                 result.failure(new InvalidSyntaxException("Expected ')' at COL:" + this.currentToken.start.col + " on Line " + (this.currentToken.start.lineNum + 1)));
             }
+        } else if (tok.matches(T_KEYWORD, "if")) {
+            Node if_expression = result.register(ifExpression());
+            if (result.error != null) {
+                throw result.error;
+            }
+            return result.success(if_expression);
         }
         return result.failure(new InvalidSyntaxException("Expected Int, Float, Identifier, '+', '-', or '(' at COL:" + this.currentToken.start.col + " on Line " + this.currentToken.start.lineNum + 1));
+    }
+
+    private ParseResult ifExpression() throws Exception {
+        ParseResult result = new ParseResult();
+        ArrayList<Node[]> cases = new ArrayList<>();
+        Node elseCase = null;
+
+        if (!this.currentToken.matches(T_KEYWORD, "if")) {
+            return result.failure(new InvalidSyntaxException("Expected 'if' at COL:" + this.currentToken.start.col + " on Line " + this.currentToken.start.lineNum + 1));
+        }
+        result.registerAdvancement();
+        this.advance();
+
+        Node condition = result.register(this.expression());
+        if (result.error != null) {
+            throw result.error;
+        }
+
+        if (!this.currentToken.matches(T_KEYWORD, "then")) {
+            return result.failure(new InvalidSyntaxException("Excepted 'then' at COL:" + this.currentToken.start.col + " on Line " + this.currentToken.start.lineNum + 1));
+        }
+
+        result.registerAdvancement();
+        this.advance();
+
+        Node expression = result.register(this.expression());
+        if (result.error != null) {
+            throw result.error;
+        }
+        cases.add(new Node[]{condition, expression});
+
+        while (this.currentToken.matches(T_KEYWORD, "elseif")) {
+            result.registerAdvancement();
+            this.advance();
+
+            condition = result.register(this.expression());
+            if (result.error != null) {
+                throw result.error;
+            }
+
+            if (!this.currentToken.matches(T_KEYWORD, "then")) {
+                return result.failure(new InvalidSyntaxException("Excepted 'then' at COL:" + this.currentToken.start.col + " on Line " + this.currentToken.start.lineNum + 1));
+            }
+
+            result.registerAdvancement();
+            this.advance();
+
+            expression = result.register(this.expression());
+            if (result.error != null) {
+                throw result.error;
+            }
+            cases.add(new Node[]{condition, expression});
+        }
+
+        if (this.currentToken.matches(T_KEYWORD, "else")) {
+            result.registerAdvancement();
+            this.advance();
+
+            elseCase = result.register(this.expression());
+            if (result.error != null) {
+                throw result.error;
+            }
+        }
+        result.registerAdvancement();
+        this.advance();
+
+        return result.success(new IfNode(cases, elseCase));
     }
 
     private ParseResult factor() throws Exception {
@@ -188,6 +261,7 @@ public class HeckScriptParser {
         this.tokens = toks;
         this.advance();
         ParseResult result = this.expression();
+        System.out.println(this.currentToken);
         if (!this.currentToken.type.equals(T_EOF)) {
             throw new InvalidSyntaxException("Expected '+', '-', '*', '/' at COL:" + currentToken.start.col + " on Line " + this.currentToken.start.lineNum);
         }

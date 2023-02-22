@@ -162,6 +162,10 @@ public class HeckNumber {
         return new HeckNumber((this.getValue() == 0 ? 1 : 0));
     }
 
+    public boolean isTrue() {
+        return Float.parseFloat(this.value) != 0;
+    }
+
     @Override
     public String toString() {
         return this.value;

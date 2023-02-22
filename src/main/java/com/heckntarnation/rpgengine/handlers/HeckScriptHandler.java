@@ -49,7 +49,11 @@ public class HeckScriptHandler {
         "function",
         "and",
         "or",
-        "not"
+        "not",
+        "if",
+        "then",
+        "else",
+        "elseif"
     };
 
     /**
@@ -112,7 +116,9 @@ public class HeckScriptHandler {
         Object result = interp.visit(parsedNode, rootContext);
         RuntimeResult res = (RuntimeResult) result;
         System.out.println("Expression Result:");
-        System.out.println(res.value);
+        if (result != null) {
+            System.out.println(res.value);
+        }
     }
 
 }
