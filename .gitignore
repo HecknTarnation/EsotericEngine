@@ -6,3 +6,4 @@ target/test-classes
 target/maven-javadoc-plugin-stale-data.txt
 nbactions.xml
 *.class
+/.idea
