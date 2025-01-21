@@ -7,8 +7,23 @@
     <artifactId>RPGEngine</artifactId>
     <version>1.0</version>
     <build>
-        <finalName>RPGEngine</finalName>
+        <finalName>EsotericEngine</finalName>
     <plugins>
+        <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+                <execution>
+                    <phase>install</phase>
+                    <goals>
+                        <goal>copy-dependencies</goal>
+                    </goals>
+                    <configuration>
+                        <includeScope>compile</includeScope>
+                        <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-deploy-plugin</artifactId>
@@ -19,7 +34,6 @@
             <artifactId>maven-source-plugin</artifactId>
             <version>3.3.1</version>
             <configuration>
-
             </configuration>
             <executions>
                 <execution>
@@ -37,6 +51,7 @@
             <configuration>
                 <reportOutputDirectory>./docs/1.0</reportOutputDirectory>
                 <destDir>docs/1.0</destDir>
+                <doclint>none</doclint>
             </configuration>
             <executions>
                 <execution>
@@ -46,6 +61,21 @@
                     </goals>
                 </execution>
             </executions>
+        </plugin>
+        <plugin>
+            <!-- Build an executable JAR -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>3.1.0</version>
+            <configuration>
+                <archive>
+                    <manifest>
+                        <addClasspath>true</addClasspath>
+                        <classpathPrefix>lib/</classpathPrefix>
+                        <mainClass>net.heckntarnation.Test</mainClass>
+                    </manifest>
+                </archive>
+            </configuration>
         </plugin>
     </plugins>
     </build>

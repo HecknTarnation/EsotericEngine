@@ -2,21 +2,28 @@ package net.heckntarnation;
 
 import net.heckntarnation.handlers.*;
 
-public class RPGEngine {
+import java.io.UnsupportedEncodingException;
 
-    private static RPGEngine _instance;
+public class EsotericEngine {
+
+    private static EsotericEngine _instance;
     public InputHandler InputHandler;
+    public WindowHandler WindowHandler;
 
     /**
      * Creates and initializes the engine. This must be run before anything else in the engine can be used.
      * @return the engine object, logging a warning if already initialized
      */
-    public static RPGEngine Init(){
-        if (_instance != null){
+    public static EsotericEngine Init() throws UnsupportedEncodingException {
+        if (_instance != null) {
             //TODO: logging
             return _instance;
         }
-        return new RPGEngine();
+        //Ensures that Swing uses OpenGL instead of software rendering. This is needed for some overlays, such as Steam.
+        //Can be changed by changing the EngineVar DISPLAY.USE_SOFTWARE_RENDERING = true.
+        System.setProperty("sun.java2d.opengl", !EngineVars.DISPLAY.USE_SOFTWARE_RENDERING + "");
+
+        return new EsotericEngine();
     }
 
     /**
@@ -24,6 +31,7 @@ public class RPGEngine {
      */
     public void UnInit(){
         InputHandler.Uninit();
+        WindowHandler.Uninit();
 
         _instance = null;
         System.gc();
@@ -32,15 +40,17 @@ public class RPGEngine {
     /**
      * @return the instance of the engine object.
      */
-    public static RPGEngine GetInstance(){
+    public static EsotericEngine GetInstance(){
         return _instance;
     }
 
-    protected RPGEngine(){
-        RPGEngine._instance = this;
+    protected EsotericEngine() throws UnsupportedEncodingException {
+        EsotericEngine._instance = this;
         //Initialize default handlers.
         this.InputHandler = new InputHandler();
         InputHandler.Init();
+        this.WindowHandler = new WindowHandler();
+        WindowHandler.Init();
     }
 
     /**
