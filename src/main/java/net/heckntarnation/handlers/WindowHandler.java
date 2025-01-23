@@ -2,6 +2,7 @@ package net.heckntarnation.handlers;
 
 import jexer.TApplication;
 import jexer.TWindow;
+import jexer.backend.Backend;
 import jexer.backend.SwingBackend;
 import jexer.menu.TMenu;
 import net.heckntarnation.EngineVars;
@@ -48,7 +49,7 @@ public class WindowHandler implements IHandler {
         tApplication.getBackend().getScreen().setDimensions(EngineVars.DISPLAY.APPLICATION_WIDTH, EngineVars.DISPLAY.APPLICATION_HEIGHT);
         if (tApplication.getBackend() instanceof SwingBackend) {
             SwingBackend swingBackend = (SwingBackend) tApplication.getBackend();
-            int[] resolution = EngineVars.DISPLAY.GetPixelResolution();
+            int[] resolution = EngineVars.DISPLAY.GetDesiredPixelResolution();
             swingBackend.getSwingComponent().setDimensions(resolution[0], resolution[1]);
             swingBackend.getSwingComponent().getFrame().setResizable(EngineVars.DISPLAY.IS_RESIZEABLE);
         }
@@ -93,18 +94,20 @@ public class WindowHandler implements IHandler {
     }
 
     /**
+     * TODO: Function currently doesn't work as intended.
      * Maximize the application. If already maximized, un-maximize.
      * {Swing backend only}
      */
-    public void maximizeApplication(){
+    public void maximizeApplication() throws InterruptedException {
         if (tApplication.getBackend() instanceof SwingBackend){
             SwingBackend swingBackend = (SwingBackend) tApplication.getBackend();
             //Toggles the maximized state
             swingBackend.getSwingComponent().getFrame().setExtendedState(swingBackend.getSwingComponent().getFrame().getExtendedState() != Frame.MAXIMIZED_BOTH
                     ? Frame.MAXIMIZED_BOTH : Frame.NORMAL);
+
             int width = swingBackend.getSwingComponent().getFrame().getWidth();
             int height = swingBackend.getSwingComponent().getFrame().getHeight();
-            tApplication.getBackend().getScreen().setDimensions(width, height);
+            tApplication.getBackend().getScreen().setDimensions(width/(EngineVars.DISPLAY.FONT_SIZE), height/EngineVars.DISPLAY.FONT_SIZE);
             if(this.isMaximized) {
                 short[] res = EngineVars.GAME.GetDesiredMainWindowResolution();
                 this.mainWindow.setDimensions(0, 1, res[0], res[1]);
@@ -116,10 +119,26 @@ public class WindowHandler implements IHandler {
     }
 
     /**
+     * Returns the current size, in pixels, of the application
+     * {Swing backend only}
+     * @return int[width, height], null if not swing backend.
+     */
+    public int[] getApplicationResolution(){
+        Backend backend = this.tApplication.getBackend();
+        if (backend instanceof SwingBackend){
+            SwingBackend swingBackend = (SwingBackend) backend;
+            int width = swingBackend.getSwingComponent().getWidth();
+            int height = swingBackend.getSwingComponent().getHeight();
+            return new int[]{width, height};
+        }
+        return null;
+    }
+
+    /**
      * Returns the current size, in characters, of the application.
      * @return int[width, height]
      */
-    public int[] getApplicationResolution(){
+    public int[] getApplicationCharacterResolution(){
         return new int[]{this.tApplication.getScreen().getWidth(), this.tApplication.getScreen().getHeight()};
     }
 }

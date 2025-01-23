@@ -2,6 +2,8 @@ package net.heckntarnation;
 
 import jexer.TApplication;
 
+import java.io.File;
+
 public class EngineVars {
 
     public class DISPLAY {
@@ -28,16 +30,28 @@ public class EngineVars {
         public static boolean IS_RESIZEABLE = false;
 
         /**
-         * Returns the pixel resolution of the window.
+         * Returns the desired pixel resolution of the window.
          * @return short[width, height]
          */
-        public static int[] GetPixelResolution(){
+        public static int[] GetDesiredPixelResolution(){
             return new int[]{APPLICATION_WIDTH * (FONT_SIZE/2), APPLICATION_HEIGHT * FONT_SIZE};
         }
     }
 
     public class INPUT {
 
+    }
+
+    public class CONFIG{
+        /**
+         * Directory for the engine to cache data.
+         * By default, it is a folder ('cache') located where the engine jar is.
+         */
+        public static File ENGINE_CACHE = new File(new File(ClassLoader.getSystemClassLoader().getResource(".").getPath()).getParentFile(), "cache");
+        /**
+         * The max size of the cache for localized strings. Stringed loaded from file are cached in memory until this limit is reached where, then, the oldest is removed.
+         */
+        public static int MAX_LOCALIZATION_CACHE_SIZE = 20;
     }
 
     public class GAME {

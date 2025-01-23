@@ -9,6 +9,9 @@ public class EsotericEngine {
     private static EsotericEngine _instance;
     public InputHandler InputHandler;
     public WindowHandler WindowHandler;
+    public LocalizationHandler LocalizationHandler;
+    public JSONHandler JSONHandler;
+    public FileHandler FileHandler;
 
     /**
      * Creates and initializes the engine. This must be run before anything else in the engine can be used.
@@ -32,6 +35,9 @@ public class EsotericEngine {
     public void UnInit(){
         InputHandler.Uninit();
         WindowHandler.Uninit();
+        LocalizationHandler.Uninit();
+        JSONHandler.Uninit();
+        FileHandler.Uninit();
 
         _instance = null;
         System.gc();
@@ -51,6 +57,12 @@ public class EsotericEngine {
         InputHandler.Init();
         this.WindowHandler = new WindowHandler();
         WindowHandler.Init();
+        this.LocalizationHandler = new LocalizationHandler();
+        LocalizationHandler.Init();
+        this.JSONHandler = new JSONHandler();
+        JSONHandler.Init();
+        this.FileHandler = new FileHandler();
+        FileHandler.Init();
     }
 
     /**
