@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"net.heckntarnation"},{"l":"net.heckntarnation.handlers"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"net.heckntarnation"},{"l":"net.heckntarnation.handlers"},{"l":"net.heckntarnation.objects"}];updateSearchResults();
