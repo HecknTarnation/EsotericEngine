@@ -5,8 +5,9 @@ import jexer.TWindow;
 import jexer.backend.Backend;
 import jexer.backend.SwingBackend;
 import jexer.menu.TMenu;
-import net.heckntarnation.EngineVars;
+import net.heckntarnation.EngineConfig;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.UnsupportedEncodingException;
 
@@ -19,22 +20,20 @@ public class WindowHandler implements IHandler {
     //Holds the main TWindow instance for gameplay
     protected TWindow mainWindow;
 
-    //Is the application maximized
-    protected boolean isMaximized = false;
-
     @Override
     public void Init() {
         try {
-            this.tApplication = new TApplication(EngineVars.DISPLAY.BACKEND_TYPE, EngineVars.DISPLAY.APPLICATION_WIDTH, EngineVars.DISPLAY.APPLICATION_HEIGHT, EngineVars.DISPLAY.FONT_SIZE);
+            this.tApplication = new TApplication(EngineConfig.DISPLAY.BACKEND_TYPE, EngineConfig.DISPLAY.APPLICATION_WIDTH, EngineConfig.DISPLAY.APPLICATION_HEIGHT, EngineConfig.DISPLAY.FONT_SIZE);
         } catch (UnsupportedEncodingException e) {
             //TODO: logging
             throw new RuntimeException(e);
         }
         this.applicationThread = new Thread(tApplication);
         this.applicationThread.start();
-        short[] res = EngineVars.GAME.GetDesiredMainWindowResolution();
-        this.mainWindow = this.addWindow(EngineVars.GAME.TITLE, 0, 0, res[0], res[1]);
-
+        this.refreshApplicationSettings();
+        short[] res = EngineConfig.GAME.GetDesiredMainWindowResolution();
+        this.mainWindow = this.addWindow(EngineConfig.GAME.TITLE, 0, 0, res[0], res[1]);
+        this.mainWindow.maximize();
     }
 
     @Override
@@ -43,15 +42,20 @@ public class WindowHandler implements IHandler {
     }
 
     /**
-     * Refreshes the window settings (width, height, resizable)
+     * Refreshes the application settings (width, height, resizable, maximized, borderless)
+     * TODO: can cause a 'this.backBuffers[...] is null' error when called just after application window initialization.
      */
-    public void refreshWindowSettings(){
-        tApplication.getBackend().getScreen().setDimensions(EngineVars.DISPLAY.APPLICATION_WIDTH, EngineVars.DISPLAY.APPLICATION_HEIGHT);
+    public void refreshApplicationSettings(){
+        tApplication.getScreen().setDimensions(EngineConfig.DISPLAY.APPLICATION_WIDTH, EngineConfig.DISPLAY.APPLICATION_HEIGHT);
         if (tApplication.getBackend() instanceof SwingBackend) {
             SwingBackend swingBackend = (SwingBackend) tApplication.getBackend();
-            int[] resolution = EngineVars.DISPLAY.GetDesiredPixelResolution();
+            int[] resolution = EngineConfig.DISPLAY.GetDesiredPixelResolution();
             swingBackend.getSwingComponent().setDimensions(resolution[0], resolution[1]);
-            swingBackend.getSwingComponent().getFrame().setResizable(EngineVars.DISPLAY.IS_RESIZEABLE);
+            swingBackend.getSwingComponent().getFrame().dispose();
+            swingBackend.getSwingComponent().getFrame().setResizable(EngineConfig.DISPLAY.IS_RESIZEABLE);
+            swingBackend.getSwingComponent().getFrame().setUndecorated(EngineConfig.DISPLAY.IS_BORDERLESS);
+            swingBackend.getSwingComponent().getFrame().setExtendedState(EngineConfig.DISPLAY.IS_MAXIMIZED ? Frame.MAXIMIZED_BOTH : Frame.NORMAL);
+            swingBackend.getSwingComponent().getFrame().setVisible(true);
         }
     }
 
@@ -91,31 +95,6 @@ public class WindowHandler implements IHandler {
      */
     public TWindow addWindow(String title, int x, int y, int width, int height){
         return this.tApplication.addWindow(title, x, y, width, height);
-    }
-
-    /**
-     * TODO: Function currently doesn't work as intended.
-     * Maximize the application. If already maximized, un-maximize.
-     * {Swing backend only}
-     */
-    public void maximizeApplication() throws InterruptedException {
-        if (tApplication.getBackend() instanceof SwingBackend){
-            SwingBackend swingBackend = (SwingBackend) tApplication.getBackend();
-            //Toggles the maximized state
-            swingBackend.getSwingComponent().getFrame().setExtendedState(swingBackend.getSwingComponent().getFrame().getExtendedState() != Frame.MAXIMIZED_BOTH
-                    ? Frame.MAXIMIZED_BOTH : Frame.NORMAL);
-
-            int width = swingBackend.getSwingComponent().getFrame().getWidth();
-            int height = swingBackend.getSwingComponent().getFrame().getHeight();
-            tApplication.getBackend().getScreen().setDimensions(width/(EngineVars.DISPLAY.FONT_SIZE), height/EngineVars.DISPLAY.FONT_SIZE);
-            if(this.isMaximized) {
-                short[] res = EngineVars.GAME.GetDesiredMainWindowResolution();
-                this.mainWindow.setDimensions(0, 1, res[0], res[1]);
-            }else {
-                this.mainWindow.maximize();
-            }
-            this.isMaximized = !this.isMaximized;
-        }
     }
 
     /**

@@ -1,11 +1,10 @@
 package net.heckntarnation.handlers;
 
-import net.heckntarnation.EngineVars;
+import net.heckntarnation.EngineConfig;
 import net.heckntarnation.EsotericEngine;
 import net.heckntarnation.objects.LimitedHashMap;
 
 import java.io.File;
-import java.util.Dictionary;
 import java.util.HashMap;
 
 public class LocalizationHandler implements IHandler {
@@ -17,7 +16,7 @@ public class LocalizationHandler implements IHandler {
     @Override
     public void Init() {
         this.loaded_languages = new HashMap<String, File>();
-        this.cachedKeys = new LimitedHashMap<>(EngineVars.CONFIG.MAX_LOCALIZATION_CACHE_SIZE);
+        this.cachedKeys = new LimitedHashMap<>(EngineConfig.CORE.MAX_LOCALIZATION_CACHE_SIZE);
     }
 
     @Override
@@ -32,7 +31,7 @@ public class LocalizationHandler implements IHandler {
      */
     public void setLanguage(String lang){
         this.current_language = lang;
-
+        this.cachedKeys.clear();
     }
 
     /**

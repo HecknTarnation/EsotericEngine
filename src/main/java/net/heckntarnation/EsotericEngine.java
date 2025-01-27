@@ -24,7 +24,7 @@ public class EsotericEngine {
         }
         //Ensures that Swing uses OpenGL instead of software rendering. This is needed for some overlays, such as Steam.
         //Can be changed by changing the EngineVar DISPLAY.USE_SOFTWARE_RENDERING = true.
-        System.setProperty("sun.java2d.opengl", !EngineVars.DISPLAY.USE_SOFTWARE_RENDERING + "");
+        System.setProperty("sun.java2d.opengl", !EngineConfig.DISPLAY.USE_SOFTWARE_RENDERING + "");
 
         return new EsotericEngine();
     }
