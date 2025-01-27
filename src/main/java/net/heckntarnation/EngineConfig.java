@@ -4,7 +4,7 @@ import jexer.TApplication;
 
 import java.io.File;
 
-public class EngineVars {
+public class EngineConfig {
 
     public class DISPLAY {
         public static TApplication.BackendType BACKEND_TYPE = TApplication.BackendType.SWING;
@@ -25,9 +25,19 @@ public class EngineVars {
          */
         public static short FONT_SIZE = 16;
         /**
-         * Can the window be resized.
+         * Can the application window be resized?
          */
         public static boolean IS_RESIZEABLE = false;
+
+        /**
+         * Does the application window have a border?
+         */
+        public static boolean IS_BORDERLESS = false;
+
+        /**
+         * Is the application window maximized?
+         */
+        public static boolean IS_MAXIMIZED = true;
 
         /**
          * Returns the desired pixel resolution of the window.
@@ -42,7 +52,7 @@ public class EngineVars {
 
     }
 
-    public class CONFIG{
+    public class CORE {
         /**
          * Directory for the engine to cache data.
          * By default, it is a folder ('cache') located where the engine jar is.
@@ -70,8 +80,8 @@ public class EngineVars {
          * @return short[width, height]
          */
         public static short[] GetDesiredMainWindowResolution(){
-            short width = EngineVars.GAME.MAIN_WINDOW_WIDTH == -1 ? EngineVars.DISPLAY.APPLICATION_WIDTH : EngineVars.GAME.MAIN_WINDOW_WIDTH;
-            short height = EngineVars.GAME.MAIN_WINDOW_HEIGHT == -1 ? EngineVars.DISPLAY.APPLICATION_WIDTH : EngineVars.GAME.MAIN_WINDOW_HEIGHT;
+            short width = EngineConfig.GAME.MAIN_WINDOW_WIDTH == -1 ? EngineConfig.DISPLAY.APPLICATION_WIDTH : EngineConfig.GAME.MAIN_WINDOW_WIDTH;
+            short height = EngineConfig.GAME.MAIN_WINDOW_HEIGHT == -1 ? EngineConfig.DISPLAY.APPLICATION_WIDTH : EngineConfig.GAME.MAIN_WINDOW_HEIGHT;
             return new short[]{width, height};
         }
     }
