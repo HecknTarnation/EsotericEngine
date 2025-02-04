@@ -30,9 +30,9 @@ public class WindowHandler implements IHandler {
         }
         this.applicationThread = new Thread(tApplication);
         this.applicationThread.start();
-        this.refreshApplicationSettings();
         short[] res = EngineConfig.GAME.GetDesiredMainWindowResolution();
         this.mainWindow = this.addWindow(EngineConfig.GAME.TITLE, 0, 0, res[0], res[1]);
+        this.refreshApplicationSettings();
         this.mainWindow.maximize();
     }
 
@@ -43,9 +43,8 @@ public class WindowHandler implements IHandler {
 
     /**
      * Refreshes the application settings (width, height, resizable, maximized, borderless)
-     * TODO: can cause a 'this.backBuffers[...] is null' error when called just after application window initialization.
      */
-    public void refreshApplicationSettings(){
+    public synchronized void refreshApplicationSettings(){
         tApplication.getScreen().setDimensions(EngineConfig.DISPLAY.APPLICATION_WIDTH, EngineConfig.DISPLAY.APPLICATION_HEIGHT);
         if (tApplication.getBackend() instanceof SwingBackend) {
             SwingBackend swingBackend = (SwingBackend) tApplication.getBackend();
@@ -56,6 +55,13 @@ public class WindowHandler implements IHandler {
             swingBackend.getSwingComponent().getFrame().setUndecorated(EngineConfig.DISPLAY.IS_BORDERLESS);
             swingBackend.getSwingComponent().getFrame().setExtendedState(EngineConfig.DISPLAY.IS_MAXIMIZED ? Frame.MAXIMIZED_BOTH : Frame.NORMAL);
             swingBackend.getSwingComponent().getFrame().setVisible(true);
+        }
+        try {
+            //This delay is to give the application window time to update. A call to methods of widgets, such as maximize() on a window,
+            // while the application window is updating can cause a crash.
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

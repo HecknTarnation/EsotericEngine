@@ -12,6 +12,7 @@ public class EsotericEngine {
     public LocalizationHandler LocalizationHandler;
     public JSONHandler JSONHandler;
     public FileHandler FileHandler;
+    public ScriptHandler ScriptHandler;
 
     /**
      * Creates and initializes the engine. This must be run before anything else in the engine can be used.
@@ -38,6 +39,7 @@ public class EsotericEngine {
         LocalizationHandler.Uninit();
         JSONHandler.Uninit();
         FileHandler.Uninit();
+        ScriptHandler.Uninit();
 
         _instance = null;
         System.gc();
@@ -63,6 +65,8 @@ public class EsotericEngine {
         JSONHandler.Init();
         this.FileHandler = new FileHandler();
         FileHandler.Init();
+        this.ScriptHandler = new ScriptHandler();
+        ScriptHandler.Init();
     }
 
     /**

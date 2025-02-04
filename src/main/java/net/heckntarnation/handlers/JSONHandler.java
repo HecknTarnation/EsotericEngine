@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class JSONHandler implements IHandler {
 
-    protected Gson gson;
+    public Gson gson;
 
     @Override
     public void Init() {
