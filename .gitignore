@@ -8,3 +8,4 @@ nbactions.xml
 *.class
 /.idea
 /target/lib
+/target/cache

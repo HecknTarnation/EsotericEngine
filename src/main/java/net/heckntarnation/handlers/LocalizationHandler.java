@@ -5,6 +5,7 @@ import net.heckntarnation.EsotericEngine;
 import net.heckntarnation.objects.LimitedHashMap;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
 public class LocalizationHandler implements IHandler {
@@ -17,6 +18,13 @@ public class LocalizationHandler implements IHandler {
     public void Init() {
         this.loaded_languages = new HashMap<String, File>();
         this.cachedKeys = new LimitedHashMap<>(EngineConfig.CORE.MAX_LOCALIZATION_CACHE_SIZE);
+        try {
+            if (EngineConfig.CORE.LOAD_BUILTIN_LANGUAGES) {
+                loadLanguage("en_us", EsotericEngine.GetInstance().FileHandler.getResourceAndCache("lang/en_us.json", "lang/en_us.json"));
+            }
+        }catch(IOException e){
+            //TODO: logging
+        }
     }
 
     @Override
@@ -48,9 +56,14 @@ public class LocalizationHandler implements IHandler {
             return cachedKeys.get(key);
         }else{
             HashMap<String, String> lang = EsotericEngine.GetInstance().JSONHandler.parseHashMapFromFile(this.loaded_languages.get(this.current_language));
-            this.cachedKeys.put(this.current_language, key);
+            this.cachedKeys.put(key, lang.get(key));
             return lang.get(key);
         }
     }
+
+    /**
+     * Merge two language files. This can be used on built-in files to add/overwrite them
+     */
+    public void mergeLang(){}
 }
 

@@ -86,9 +86,9 @@
             <version>3.0.1</version>
         </dependency>
         <dependency>
-            <groupId>com.gitlab.klamonte</groupId>
-            <artifactId>jexer</artifactId>
-            <version>1.6.0</version>
+            <groupId>com.googlecode.lanterna</groupId>
+            <artifactId>lanterna</artifactId>
+            <version>3.1.2</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

@@ -1,17 +1,18 @@
 package net.heckntarnation;
 
-import jexer.TApplication;
-
 import java.io.File;
 
 public class EngineConfig {
 
     public class DISPLAY {
-        public static TApplication.BackendType BACKEND_TYPE = TApplication.BackendType.SWING;
         /**
          * Determines if rendering is done with OpenGL, default, or software rendering. Note: overlays such as Steam do not support software rendering
          */
         public static boolean USE_SOFTWARE_RENDERING = false;
+        /**
+         * When running in a terminal, private mode gives a "fullscreen" view of the application and ensures the terminal's original state is restored after exit
+         */
+        public static boolean USE_PRIVATE_MODE = true;
         /**
          * Window's width, in characters.
          */
@@ -57,11 +58,15 @@ public class EngineConfig {
          * Directory for the engine to cache data.
          * By default, it is a folder ('cache') located where the engine jar is.
          */
-        public static File ENGINE_CACHE = new File(new File(ClassLoader.getSystemClassLoader().getResource(".").getPath()).getParentFile(), "cache");
+        public static String ENGINE_CACHE = null;
         /**
          * The max size of the cache for localized strings. Stringed loaded from file are cached in memory until this limit is reached where, then, the oldest is removed.
          */
         public static int MAX_LOCALIZATION_CACHE_SIZE = 20;
+        /**
+         * Determines if the built-in language files should be loaded
+         */
+        public static boolean LOAD_BUILTIN_LANGUAGES = true;
     }
 
     public class GAME {
@@ -69,21 +74,6 @@ public class EngineConfig {
          * The title of the game.
          */
         public static String TITLE = "Esoteric Engine";
-
-        /**
-         * Main sub-window's width and height, in characters. -1 means it will match DISPLAY.WINDOW_WIDTH/HEIGHT
-         */
-        public static short MAIN_WINDOW_WIDTH = -1, MAIN_WINDOW_HEIGHT = -1;
-
-        /**
-         * Returns the desired resolution, in characters, of the main window.
-         * @return short[width, height]
-         */
-        public static short[] GetDesiredMainWindowResolution(){
-            short width = EngineConfig.GAME.MAIN_WINDOW_WIDTH == -1 ? EngineConfig.DISPLAY.APPLICATION_WIDTH : EngineConfig.GAME.MAIN_WINDOW_WIDTH;
-            short height = EngineConfig.GAME.MAIN_WINDOW_HEIGHT == -1 ? EngineConfig.DISPLAY.APPLICATION_WIDTH : EngineConfig.GAME.MAIN_WINDOW_HEIGHT;
-            return new short[]{width, height};
-        }
     }
 
 }

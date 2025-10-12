@@ -2,7 +2,10 @@ package net.heckntarnation;
 
 import net.heckntarnation.handlers.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 
 public class EsotericEngine {
 
@@ -18,7 +21,7 @@ public class EsotericEngine {
      * Creates and initializes the engine. This must be run before anything else in the engine can be used.
      * @return the engine object, logging a warning if already initialized
      */
-    public static EsotericEngine Init() throws UnsupportedEncodingException {
+    public static EsotericEngine Init() throws IOException, URISyntaxException {
         if (_instance != null) {
             //TODO: logging
             return _instance;
@@ -26,6 +29,13 @@ public class EsotericEngine {
         //Ensures that Swing uses OpenGL instead of software rendering. This is needed for some overlays, such as Steam.
         //Can be changed by changing the EngineVar DISPLAY.USE_SOFTWARE_RENDERING = true.
         System.setProperty("sun.java2d.opengl", !EngineConfig.DISPLAY.USE_SOFTWARE_RENDERING + "");
+
+        if(EngineConfig.CORE.ENGINE_CACHE == null){
+            File runningDir = new File(new File(EsotericEngine.class.getProtectionDomain().getCodeSource().getLocation()
+                    .toURI()).getParentFile().getPath() + "/cache/");
+            runningDir.mkdir();
+            EngineConfig.CORE.ENGINE_CACHE = runningDir.getPath() + "/";
+        }
 
         return new EsotericEngine();
     }
@@ -59,12 +69,12 @@ public class EsotericEngine {
         InputHandler.Init();
         this.WindowHandler = new WindowHandler();
         WindowHandler.Init();
+        this.FileHandler = new FileHandler();
+        FileHandler.Init();
         this.LocalizationHandler = new LocalizationHandler();
         LocalizationHandler.Init();
         this.JSONHandler = new JSONHandler();
         JSONHandler.Init();
-        this.FileHandler = new FileHandler();
-        FileHandler.Init();
         this.ScriptHandler = new ScriptHandler();
         ScriptHandler.Init();
     }

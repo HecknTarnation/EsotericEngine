@@ -1,8 +1,13 @@
 package net.heckntarnation.handlers;
 
+import net.heckntarnation.EngineConfig;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 public class FileHandler implements IHandler{
@@ -37,5 +42,32 @@ public class FileHandler implements IHandler{
      */
     public String readFile(File file){
         return String.join(System.lineSeparator(), readFiletoList(file));
+    }
+
+
+
+    /**
+     * Gets a resource, as a InputStream, included in a jar file, given a classloader path
+     * @param path
+     * @return
+     */
+    public InputStream getResource(String path){
+        return ClassLoader.getSystemClassLoader().getResourceAsStream(path);
+    }
+
+    /**
+     * Gets a resource and extracts to the cache
+     */
+    public File getResourceAndCache(String inputPath, String outputPath) throws IOException {
+        File outputFile = new File(EngineConfig.CORE.ENGINE_CACHE + outputPath);
+        if(outputFile.exists()){outputFile.delete();}
+        outputFile.mkdirs();
+        outputFile.createNewFile();
+        try {
+            Files.copy(getResource(inputPath), outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return outputFile;
     }
 }
