@@ -10,10 +10,6 @@ public class EngineConfig {
          */
         public static boolean USE_SOFTWARE_RENDERING = false;
         /**
-         * When running in a terminal, private mode gives a "fullscreen" view of the application and ensures the terminal's original state is restored after exit
-         */
-        public static boolean USE_PRIVATE_MODE = true;
-        /**
          * Window's width, in characters.
          */
         public static short APPLICATION_WIDTH = 120;

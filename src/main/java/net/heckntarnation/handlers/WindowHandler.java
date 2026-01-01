@@ -3,10 +3,13 @@ package net.heckntarnation.handlers;
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
+import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import com.googlecode.lanterna.terminal.TerminalResizeListener;
 import net.heckntarnation.EngineConfig;
+import net.heckntarnation.objects.UnlocalizedString;
 
 import java.io.IOException;
 
@@ -14,6 +17,8 @@ public class WindowHandler implements IHandler {
 
     //Holds the reference to the Lanterna terminal
     protected Terminal terminal;
+    //Holds the Screen reference
+    protected Screen screen;
 
 
     @Override
@@ -25,9 +30,9 @@ public class WindowHandler implements IHandler {
         DefaultTerminalFactory factory = new DefaultTerminalFactory();
         try {
             this.terminal = factory.createTerminal();
-            if(EngineConfig.DISPLAY.USE_PRIVATE_MODE) {
-                this.terminal.enterPrivateMode();
-            }
+            this.terminal.enterPrivateMode();
+            this.screen = new TerminalScreen(this.terminal);
+            this.screen.startScreen();
         } catch (IOException e) {
             //TODO: logging
         }
@@ -40,6 +45,14 @@ public class WindowHandler implements IHandler {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     *
+     * @return the screen
+     */
+    public Screen getScreen(){
+        return this.screen;
     }
 
     /**
@@ -102,6 +115,15 @@ public class WindowHandler implements IHandler {
      */
     public void addResizeListener(TerminalResizeListener listener){
         terminal.addResizeListener(listener);
+    }
+
+    /**
+     * Prompts the user to select an option from a menu
+     * @param options an array of UnlocalizedStrings representing the menu options
+     * @return a byte with the index of the option selected
+     */
+    public byte doMenu(UnlocalizedString[] options){
+        return 0;
     }
 
 }
